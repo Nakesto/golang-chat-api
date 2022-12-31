@@ -13,7 +13,7 @@ import (
 var DB *gorm.DB
 
 func SetupModels() {
-	err := godotenv.Load("ENV")
+	err := godotenv.Load()
 
 	if err != nil {
 		log.Fatalf(err.Error())
