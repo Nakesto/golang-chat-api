@@ -36,11 +36,11 @@ func SetupModels() {
 	} else {
 		fmt.Println("We are connected to the database ", Dbdriver)
 	}
-	// DB.DropTable("chats")
-	// DB.DropTable("users")
+	DB.DropTable("chats")
+	DB.DropTable("users")
 
-	// DB.AutoMigrate()
-	// DB.AutoMigrate(&User{}, &Chat{})
-	// DB.Model(&Chat{}).AddForeignKey("sender_name", "users(username)", "CASCADE", "CASCADE")
-	// DB.Model(&Chat{}).AddForeignKey("receive_name", "users(username)", "CASCADE", "CASCADE")
+	DB.AutoMigrate()
+	DB.AutoMigrate(&User{}, &Chat{})
+	DB.Model(&Chat{}).AddForeignKey("sender_name", "users(username)", "CASCADE", "CASCADE")
+	DB.Model(&Chat{}).AddForeignKey("receive_name", "users(username)", "CASCADE", "CASCADE")
 }
