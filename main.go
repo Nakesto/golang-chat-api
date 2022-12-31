@@ -16,8 +16,6 @@ func main() {
 	models.SetupModels()
 
 	r := gin.Default()
-
-	r.Static("/assets", "./assets")
 	r.MaxMultipartMemory = 8 << 20
 
 	r.Use(gin.Logger())
@@ -69,5 +67,5 @@ func main() {
 		port = "8000"
 	}
 
-	r.Run(":" + port)
+	r.Run("127.0.0.1:" + port)
 }
