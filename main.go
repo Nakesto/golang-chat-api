@@ -69,5 +69,5 @@ func main() {
 		port = "8000"
 	}
 
-	r.Run("127.0.0.1:" + port)
+	r.Run(":" + port)
 }
