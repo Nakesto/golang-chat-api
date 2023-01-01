@@ -13,6 +13,11 @@ import (
 var DB *gorm.DB
 
 func SetupModels() {
+	err := godotenv.Load(".env")
+
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
 	Dbdriver := os.Getenv("DB_DRIVER")
 	DbHost := os.Getenv("DB_HOST")
 	DbUser := os.Getenv("DB_USER")
