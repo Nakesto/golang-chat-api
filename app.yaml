@@ -1,1 +1,13 @@
-runtime: go117
+runtime: go119
+
+env_variables:
+PORT: "8080"
+DB_PORT: "3306"
+DB_NAME: "sql6587040"
+DB_PASSWORD: "YzKa1MWg8q"
+DB_USER: "sql6587040"
+DB_HOST: "sql6.freesqldatabase.com"
+DB_DRIVER: "mysql"
+API_SECRET: "chatgunawan"
+TOKEN_HOUR_LIFESPAN: "1"
+CLOUDINARY_URL: "cloudinary://672374291877475:Kfvgb4DjyW65yA7mHOYurxfVuyw@da9irqgak"
