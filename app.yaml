@@ -1,7 +1,6 @@
 runtime: go119
 
 env_variables:
-PORT: "8080"
 DB_PORT: "3306"
 DB_NAME: "sql6587040"
 DB_PASSWORD: "YzKa1MWg8q"
