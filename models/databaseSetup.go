@@ -7,18 +7,17 @@ import (
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
-	"github.com/spf13/viper"
+	"github.com/joho/godotenv"
 )
 
 var DB *gorm.DB
 
 func SetupModels() {
-	viper.SetConfigFile("ENV")
-	viper.ReadInConfig()
-	viper.AutomaticEnv()
+	err := godotenv.Load(".env")
 
-	var err error
-
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
 	Dbdriver := os.Getenv("DB_DRIVER")
 	DbHost := os.Getenv("DB_HOST")
 	DbUser := os.Getenv("DB_USER")
