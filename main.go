@@ -15,6 +15,10 @@ import (
 func main() {
 	models.SetupModels()
 
+	if os.Getenv("type") == "production" {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
 	r := gin.Default()
 	r.MaxMultipartMemory = 8 << 20
 
@@ -67,5 +71,5 @@ func main() {
 		port = "8000"
 	}
 
-	r.Run("127.0.0.1:" + port)
+	r.Run(":" + port)
 }
