@@ -12,6 +12,11 @@ type message struct {
 	ReceiveName string
 }
 
+type Response struct {
+	Tipe string      `json:"type"`
+	Data interface{} `json:"data"`
+}
+
 type Hub struct {
 	// Registered clients.
 	clients map[*Client]bool
@@ -44,7 +49,6 @@ func (h *Hub) run() {
 				msg := []byte("some one join room (ID: " + clientId + ")")
 				client.send <- msg
 			}
-
 			h.clients[client] = true
 
 		case client := <-h.unregister:
@@ -65,25 +69,52 @@ func (h *Hub) run() {
 				break
 			}
 
+			chat := models.Chat{}
+
+			chat.SenderName = data.SenderName
+			chat.ReceiveName = data.ReceiveName
+			chat.Message = data.Message
+
+			c, err := chat.SaveChat()
+
+			if err != nil {
+				continue
+			}
+
+			init := Response{Tipe: "message", Data: c}
+
+			rooms := &models.ChatRoom{SenderName: c.ReceiveName, ReceiveName: c.SenderName, LastMessage: c.Message, UpdatedAt: c.UpdatedAt}
+
+			init2 := Response{Tipe: "room", Data: rooms}
+
 			for client := range h.clients {
 				//prevent self and not receiver receive the message
 				if client.Username == string(data.SenderName) {
-					continue
-				} else if client.Username == string(data.ReceiveName) {
-					chat := models.Chat{}
-
-					chat.SenderName = data.SenderName
-					chat.ReceiveName = data.ReceiveName
-					chat.Message = data.Message
-
-					_, err := chat.SaveChat()
+					resp := []interface{}{init2}
+					result, err := json.Marshal(resp)
 
 					if err != nil {
 						continue
 					}
 
 					select {
-					case client.send <- []byte(data.Message):
+					case client.send <- result:
+					default:
+						close(client.send)
+						delete(h.clients, client)
+					}
+				} else if client.Username == string(data.ReceiveName) {
+
+					resp := []interface{}{init, init2}
+
+					result, err := json.Marshal(resp)
+
+					if err != nil {
+						continue
+					}
+
+					select {
+					case client.send <- result:
 					default:
 						close(client.send)
 						delete(h.clients, client)

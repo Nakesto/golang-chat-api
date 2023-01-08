@@ -1,14 +1,17 @@
 package models
 
-import "github.com/jinzhu/gorm"
+import "time"
 
 type Chat struct {
-	gorm.Model
-	Message     string `gorm:"size:255;not null" json:"message"`
-	SenderName  string
-	ReceiveName string
-	Sender      User `gorm:"foreignKey:SenderName;references:Username"`
-	Receiver    User `gorm:"foreignKey:ReceiveName;references:Username"`
+	ID          uint       `gorm:"primary_key" json:"-"`
+	CreatedAt   time.Time  `json:"sent_time"`
+	UpdatedAt   time.Time  `json:"-"`
+	DeletedAt   *time.Time `json:"-" sql:"index"`
+	Message     string     `gorm:"size:255;not null" json:"message"`
+	SenderName  string     `gorm:"size:255;not null" `
+	ReceiveName string     `gorm:"size:255;not null" `
+	Sender      User       `gorm:"foreignKey:Username;association_foreignkey:SenderName" json:"-"`
+	Receiver    User       `gorm:"foreignKey:Username;association_foreignkey:ReceiveName" json:"-"`
 }
 
 func (chat *Chat) SaveChat() (*Chat, error) {
@@ -18,4 +21,17 @@ func (chat *Chat) SaveChat() (*Chat, error) {
 	}
 
 	return chat, nil
+}
+
+func (chat *Chat) BeforeSave() error {
+	set1 := []string{chat.SenderName, chat.ReceiveName}
+	set2 := []string{chat.ReceiveName, chat.SenderName}
+
+	err := DB.Model(&ChatRoom{}).Where("(sender_name, receive_name) IN ((?),(?))", set1, set2).Update(&ChatRoom{LastMessage: chat.Message}).Error
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

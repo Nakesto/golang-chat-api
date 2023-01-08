@@ -3,20 +3,21 @@ package models
 import (
 	"errors"
 	"html"
-	"math/rand"
 	"strings"
+	"time"
 
-	"github.com/jinzhu/gorm"
 	"github.com/nakesto/chat-api/token"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
-	gorm.Model
-	UID      int    `gorm:"size:255;not null;unique" json:"uid"`
-	Username string `gorm:"size:255;not null;unique" json:"username"`
-	Password string `gorm:"size:255;not null" json:"password"`
-	PhotoURL string `gorm:"size:255" json:"photoURL"`
+	ID        uint       `gorm:"primary_key" json:"-"`
+	CreatedAt time.Time  `json:"-"`
+	UpdatedAt time.Time  `json:"-"`
+	DeletedAt *time.Time `json:"-" sql:"index"`
+	Username  string     `gorm:"size:255;not null;unique" json:"username"`
+	Password  string     `gorm:"size:255;not null" json:"-"`
+	PhotoURL  string     `gorm:"size:255" json:"photoURL"`
 }
 
 func (u *User) SaveUser() (*User, error) {
@@ -37,8 +38,6 @@ func (u *User) BeforeSave() error {
 
 	//remove spaces in username
 	u.Username = html.EscapeString(strings.TrimSpace(u.Username))
-
-	u.UID = rand.Intn(10000)
 
 	return nil
 }

@@ -140,9 +140,9 @@ func Test(c *gin.Context) {
 
 	db := models.DB
 
-	var chats models.Chat
+	chats := models.Chat{}
 
-	err := db.Preload("User").Find(&models.Chat{}).Take(&chats).Error
+	err := db.Model(&models.User{}).Preload("Sender").Preload("Receiver").First(&chats).Error
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
