@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/nakesto/chat-api/models"
 )
@@ -15,6 +16,10 @@ type message struct {
 type Response struct {
 	Tipe string      `json:"type"`
 	Data interface{} `json:"data"`
+}
+
+type Welcome struct {
+	Pesan string `json:"message"`
 }
 
 type Hub struct {
@@ -46,7 +51,15 @@ func (h *Hub) run() {
 		case client := <-h.register:
 			clientId := client.ID
 			for client := range h.clients {
-				msg := []byte("some one join room (ID: " + clientId + ")")
+				result := Response{Tipe: "welcome", Data: Welcome{Pesan: "Someone join socket dengan Id" + clientId}}
+				sasa := []interface{}{result}
+				end, err := json.Marshal(sasa)
+
+				if err != nil {
+					continue
+				}
+
+				msg := end
 				client.send <- msg
 			}
 			h.clients[client] = true
@@ -57,10 +70,7 @@ func (h *Hub) run() {
 				delete(h.clients, client)
 				close(client.send)
 			}
-			for client := range h.clients {
-				msg := []byte("some one leave room (ID:" + clientId + ")")
-				client.send <- msg
-			}
+			fmt.Println("some one leave room (ID:" + clientId + ")")
 		case userMessage := <-h.broadcast:
 			var data message
 			err := json.Unmarshal(userMessage, &data)
@@ -83,14 +93,14 @@ func (h *Hub) run() {
 
 			init := Response{Tipe: "message", Data: c}
 
-			rooms := &models.ChatRoom{SenderName: c.ReceiveName, ReceiveName: c.SenderName, LastMessage: c.Message, UpdatedAt: c.UpdatedAt}
+			rooms := &models.ChatRoom{SenderName: c.SenderName, ReceiveName: c.ReceiveName, LastMessage: c.Message, UpdatedAt: c.UpdatedAt, Sender: c.Sender, Receiver: c.Receiver}
 
 			init2 := Response{Tipe: "room", Data: rooms}
 
 			for client := range h.clients {
 				//prevent self and not receiver receive the message
 				if client.Username == string(data.SenderName) {
-					resp := []interface{}{init2}
+					resp := []interface{}{init, init2}
 					result, err := json.Marshal(resp)
 
 					if err != nil {

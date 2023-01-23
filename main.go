@@ -22,17 +22,20 @@ func main() {
 	r := gin.Default()
 	r.MaxMultipartMemory = 8 << 20
 
-	r.Use(gin.Logger())
-	r.Use(gin.Recovery())
-
 	hub := newHub()
 	go hub.run()
 
 	r.Use(func(c *gin.Context) {
-		c.Header("Access-Control-Allow-Origin", "*")
-		c.Header("Access-Control-Allow-Headers", "Content-Type")
-		c.Header("Content-Type", "application/json")
-		c.Next()
+		c.Header("Access-Control-Allow-Methods", "DELETE, POST, GET, PUT, OPTIONS")
+		c.Header("Access-Control-Allow-Origin", "http://127.0.0.1:5173")
+		c.Header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization")
+		c.Header("Access-Control-Max-Age", "86400")
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		} else {
+			c.Next()
+		}
 	})
 
 	publicRoutes := r.Group("/")

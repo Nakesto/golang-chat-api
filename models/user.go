@@ -85,6 +85,17 @@ func GetUserByID(uid uint) (User, error) {
 
 }
 
+func GetUserByUsername(name string) ([]User, error) {
+
+	var u []User
+
+	if err := DB.Model(User{}).Where("username LIKE ?", "%"+name+"%").Take(&u).Error; err != nil {
+		return []User{}, err
+	}
+
+	return u, nil
+}
+
 func (u *User) PrepareGive() {
 	u.Password = ""
 }

@@ -7,12 +7,19 @@ import (
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
+	"github.com/joho/godotenv"
 )
 
 var DB *gorm.DB
 
 func SetupModels() {
 	var err error
+
+	err = godotenv.Load(".env")
+
+	if err != nil {
+		log.Fatal("connection error:", err)
+	}
 
 	Dbdriver := os.Getenv("DB_DRIVER")
 	DbHost := os.Getenv("DB_HOST")
@@ -24,7 +31,7 @@ func SetupModels() {
 	DBURL := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", DbUser, DbPassword, DbHost, DbPort, DbName)
 
 	DB, err = gorm.Open(Dbdriver, DBURL)
-	DB.LogMode(true)
+	// DB.LogMode(true)
 
 	if err != nil {
 		fmt.Println("Cannot connect to database ", Dbdriver)

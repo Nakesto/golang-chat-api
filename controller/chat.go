@@ -164,3 +164,23 @@ func AddChatRoom(c *gin.Context) {
 		"chatroom": chatroom,
 	})
 }
+
+func GetFriends(c *gin.Context) {
+	params := c.Query("name")
+
+	if params == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Params name required"})
+		return
+	}
+
+	u, err := models.GetUserByUsername(params)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"users": u,
+	})
+}

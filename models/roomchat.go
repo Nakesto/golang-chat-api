@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"errors"
+	"reflect"
+	"time"
+)
 
 type ChatRoom struct {
 	ID          uint       `gorm:"primary_key" json:"-"`
@@ -10,8 +14,8 @@ type ChatRoom struct {
 	SenderName  string
 	ReceiveName string
 	LastMessage string `gorm:"size:255" json:"lastmessage"`
-	Sender      User   `gorm:"foreignKey:Username;association_foreignkey:SenderName" json:"-"`
-	Receiver    User   `gorm:"foreignKey:Username;association_foreignkey:ReceiveName" json:"-"`
+	Sender      User   `gorm:"foreignKey:Username;association_foreignkey:SenderName"`
+	Receiver    User   `gorm:"foreignKey:Username;association_foreignkey:ReceiveName"`
 }
 
 func (chat *ChatRoom) SaveRoom() (*ChatRoom, error) {
@@ -20,4 +24,20 @@ func (chat *ChatRoom) SaveRoom() (*ChatRoom, error) {
 		return &ChatRoom{}, err
 	}
 	return chat, nil
+}
+
+func (chat *ChatRoom) BeforeSave() error {
+	var cr ChatRoom
+
+	err := DB.Model(chat).Where("(sender_name, receive_name) IN ((?),(?))", chat.SenderName, chat.ReceiveName).Find(&cr).Error
+
+	if err != nil {
+		return err
+	}
+
+	if reflect.ValueOf(cr).IsNil() {
+		return nil
+	} else {
+		return errors.New("Chat telah dibuat")
+	}
 }

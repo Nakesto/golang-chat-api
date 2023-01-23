@@ -10,4 +10,5 @@ func Protected(protectedRoutes *gin.RouterGroup) {
 	protectedRoutes.POST("/addchatroom", controller.AddChatRoom)
 	protectedRoutes.GET("/chatroom", controller.GetChatRoom)
 	protectedRoutes.GET("/activechat", controller.GetActiveChat)
+	protectedRoutes.GET("/friends", controller.GetFriends)
 }
