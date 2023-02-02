@@ -15,8 +15,7 @@ func SetupModels() {
 	var err error
 
 	Dbdriver := os.Getenv("DB_DRIVER")
-
-	dsn :="postgres://golang:R2fued7caOb6NGSZmGPIvioS5Upk136b@dpg-cfdmd4g2i3mmlo31egug-a.singapore-postgres.render.com/chatapi_o52o"
+	dsn := os.Getenv("DB_URL")
 
 	DB, err = gorm.Open(Dbdriver, dsn)
 	// DB.LogMode(true)
