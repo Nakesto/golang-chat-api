@@ -27,7 +27,7 @@ func main() {
 
 	r.Use(func(c *gin.Context) {
 		c.Header("Access-Control-Allow-Methods", "DELETE, POST, GET, PUT, OPTIONS")
-		c.Header("Access-Control-Allow-Origin", "https://vue-clone-whatsapp.vercel.app")
+		c.Header("Access-Control-Allow-Origin", "https://clone-whatsapp.onrender.com")
 		c.Header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization")
 		c.Header("Access-Control-Max-Age", "86400")
 		if c.Request.Method == "OPTIONS" {
