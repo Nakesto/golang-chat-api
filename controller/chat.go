@@ -198,3 +198,7 @@ func GetFriends(c *gin.Context) {
 		"users": u,
 	})
 }
+
+func DeleteRoom(c *gin.Context){
+	
+}

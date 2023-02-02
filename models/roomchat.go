@@ -13,7 +13,7 @@ type ChatRoom struct {
 	CreatedAt   time.Time  `json:"-"`
 	UpdatedAt   time.Time  `json:"last_message_time"`
 	DeletedAt   *time.Time `json:"-" sql:"index"`
-	SenderName  string
+	SenderName  string 
 	ReceiveName string
 	LastMessage string `gorm:"size:255" json:"lastmessage"`
 	Sender      User   `gorm:"foreignKey:Username;association_foreignkey:SenderName"`

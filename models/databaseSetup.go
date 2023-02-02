@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
 var DB *gorm.DB
@@ -15,15 +15,10 @@ func SetupModels() {
 	var err error
 
 	Dbdriver := os.Getenv("DB_DRIVER")
-	DbHost := os.Getenv("DB_HOST")
-	DbUser := os.Getenv("DB_USER")
-	DbPassword := os.Getenv("DB_PASSWORD")
-	DbName := os.Getenv("DB_NAME")
-	DbPort := os.Getenv("DB_PORT")
 
-	DBURL := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", DbUser, DbPassword, DbHost, DbPort, DbName)
+	dsn :="postgres://golang:R2fued7caOb6NGSZmGPIvioS5Upk136b@dpg-cfdmd4g2i3mmlo31egug-a.singapore-postgres.render.com/chatapi_o52o"
 
-	DB, err = gorm.Open(Dbdriver, DBURL)
+	DB, err = gorm.Open(Dbdriver, dsn)
 	// DB.LogMode(true)
 
 	if err != nil {
