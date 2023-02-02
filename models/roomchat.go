@@ -1,11 +1,7 @@
 package models
 
 import (
-	"errors"
-	"fmt"
 	"time"
-
-	"github.com/jinzhu/gorm"
 )
 
 type ChatRoom struct {
@@ -20,6 +16,16 @@ type ChatRoom struct {
 	Receiver    User   `gorm:"foreignKey:Username;association_foreignkey:ReceiveName"`
 }
 
+func DeleteRoom(u User, ReceiveName string) (error){
+	err := DB.Where("((sender_name, receive_name) IN ((?,?)))", u.Username, ReceiveName).Delete(&ChatRoom{}).Error
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (room *ChatRoom) SaveRoom() (*ChatRoom, error) {
 	err := DB.Create(&room).Error
 	if err != nil {
@@ -28,20 +34,25 @@ func (room *ChatRoom) SaveRoom() (*ChatRoom, error) {
 	return room, nil
 }
 
-func (room *ChatRoom) BeforeSave() error {
+func (room *ChatRoom) GetRoom() (*ChatRoom, error) {
 	var cr ChatRoom
 
-	if room.SenderName == "" && room.ReceiveName == ""{
-		return nil
+	err := DB.Unscoped().Model(ChatRoom{}).Where("(sender_name, receive_name) IN ((?,?))", room.SenderName, room.ReceiveName).Find(&cr).Error
+
+	if err != nil {
+		return &ChatRoom{}, err
 	}
 
-	fmt.Println(room.SenderName, room.ReceiveName)
+	return &cr, nil
+}
 
-	err := DB.Model(ChatRoom{}).Where("(sender_name, receive_name) IN ((?,?))", room.SenderName, room.ReceiveName).Find(&cr).Error
+func (room *ChatRoom) UpdateDeletedRoom() (error) {
 
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil
+	err := DB.Unscoped().Model(&ChatRoom{}).Where("(sender_name, receive_name) IN ((?,?))", room.SenderName, room.ReceiveName).Update("deleted_at", nil)
+
+	if err != nil {
+		return err.Error
 	}
-	
-	return errors.New("Chat telah dibuat")
+
+	return nil 
 }

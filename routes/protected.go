@@ -13,4 +13,5 @@ func Protected(protectedRoutes *gin.RouterGroup) {
 	protectedRoutes.GET("/friends", controller.GetFriends)
 	protectedRoutes.PUT("/photoProfile", controller.ChangeProfile)
 	protectedRoutes.PUT("/status", controller.ChangeStatus)
+	protectedRoutes.DELETE("/delchatroom", controller.DeleteRoom)
 }

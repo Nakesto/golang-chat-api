@@ -1,10 +1,12 @@
 package controller
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
 	"github.com/nakesto/chat-api/models"
 	"github.com/nakesto/chat-api/token"
 )
@@ -144,6 +146,7 @@ func AddActiveChat(c *gin.Context) {
 
 func AddChatRoom(c *gin.Context) {
 	var input ChatRoomInput
+	var chatroom *models.ChatRoom
 
 	if err := c.ShouldBind(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -155,7 +158,20 @@ func AddChatRoom(c *gin.Context) {
 	room.SenderName = input.Sender
 	room.ReceiveName = input.Receiver
 
-	chatroom, err := room.SaveRoom()
+	chatroom, err := room.GetRoom()
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		chatroom,err = room.SaveRoom()
+	}
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if chatroom.DeletedAt != nil {
+		err = room.UpdateDeletedRoom()
+	}
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -167,7 +183,11 @@ func AddChatRoom(c *gin.Context) {
 	room2.SenderName = input.Receiver
 	room2.ReceiveName = input.Sender
 
-	_, err = room2.SaveRoom()
+	_, err = room2.GetRoom()
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		_,err = room2.SaveRoom()
+	}
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -199,6 +219,44 @@ func GetFriends(c *gin.Context) {
 	})
 }
 
-func DeleteRoom(c *gin.Context){
-	
+type DelRoom struct {
+	ReceiveName string `json:"receiver" form:"receiver" binding:"required"`
+}
+
+func DeleteRoom(c *gin.Context){	
+	var input DelRoom
+
+	if err := c.ShouldBind(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	userId, err := token.ExtractTokenID(c)
+
+	if err != nil {
+		fmt.Println("User not valid")
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	u, err := models.GetUserByID(userId)
+
+	if err != nil {
+		fmt.Println(err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err = models.DeleteRoom(u, input.ReceiveName)
+
+	if err != nil {
+		fmt.Println(err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"status": "room berhasil dihapus",
+	})
+
 }
