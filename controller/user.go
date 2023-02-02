@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
+	"time"
 
 	cloudinary "github.com/cloudinary/cloudinary-go/v2"
 	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
@@ -59,16 +61,19 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	ctx := context.Background()
-
-	res, err := cloud.Upload.Upload(ctx, image, uploader.UploadParams{})
-
-	if err != nil {
+	if err := c.ShouldBind(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := c.ShouldBind(&input); err != nil {
+	ctx := context.Background()
+
+	res, err := cloud.Upload.Upload(ctx, image, uploader.UploadParams{
+		PublicID: file.Filename+input.Username+strconv.FormatInt(time.Now().Unix(), 10),
+		Tags: strings.Split("-", file.Filename + input.Username),
+	})
+
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -78,6 +83,7 @@ func Register(c *gin.Context) {
 	u.Username = input.Username
 	u.Password = input.Password
 	u.PhotoURL = res.SecureURL
+	u.Photo = res.PublicID
 
 	user, err := u.SaveUser()
 
@@ -150,4 +156,117 @@ func Test(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"data": chats})
+}
+
+func ChangeProfile(c *gin.Context) {
+
+	file, err := c.FormFile("photo")
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "File Photo required for this request"})
+		return
+	}
+
+	user_id, err := token.ExtractTokenID(c)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	u, err := models.GetUserByID(user_id)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	image, err := file.Open()
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	cloud, err := cloudinary.NewFromURL(os.Getenv("CLOUDINARY_URL"))
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx := context.Background()
+
+	res, err := cloud.Upload.Upload(ctx, image, uploader.UploadParams{
+		PublicID: file.Filename+u.Username+strconv.FormatInt(time.Now().Unix(), 10),
+		Tags: strings.Split("-", file.Filename + u.Username),
+	})
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err = models.UpdatePhoto(models.User{
+		Username: u.Username,
+		Photo: res.PublicID,
+		PhotoURL: res.SecureURL,
+	})
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	
+	result, err := cloud.Upload.Destroy(ctx, uploader.DestroyParams{
+		PublicID: u.Photo,
+	})
+
+	if err != nil {
+  		c.JSON(http.StatusBadRequest, gin.H{"error": "File could not be deleted"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": result.Result, "photoURL" : res.SecureURL})
+}
+
+type status struct{
+	Status string `json:"status" form:"status" binding:"required"`
+}
+
+func ChangeStatus(c *gin.Context){
+	var input status
+
+	if err := c.ShouldBind(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	user_id, err := token.ExtractTokenID(c)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	u, err := models.GetUserByID(user_id)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	user := models.User{}
+
+	user.Username = u.Username
+	user.Status = input.Status
+
+	err = models.UpdateStatus(user)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "Status has been changed"})
 }

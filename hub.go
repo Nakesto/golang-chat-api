@@ -93,7 +93,7 @@ func (h *Hub) run() {
 
 			init := Response{Tipe: "message", Data: c}
 
-			rooms := &models.ChatRoom{SenderName: c.SenderName, ReceiveName: c.ReceiveName, LastMessage: c.Message, UpdatedAt: c.UpdatedAt, Sender: c.Sender, Receiver: c.Receiver}
+			rooms := models.ChatRoom{SenderName: c.SenderName, ReceiveName: c.ReceiveName, LastMessage: c.Message, UpdatedAt: c.UpdatedAt, Sender: c.Sender, Receiver: c.Receiver}
 
 			init2 := Response{Tipe: "room", Data: rooms}
 

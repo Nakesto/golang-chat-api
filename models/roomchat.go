@@ -2,8 +2,10 @@ package models
 
 import (
 	"errors"
-	"reflect"
+	"fmt"
 	"time"
+
+	"github.com/jinzhu/gorm"
 )
 
 type ChatRoom struct {
@@ -18,26 +20,28 @@ type ChatRoom struct {
 	Receiver    User   `gorm:"foreignKey:Username;association_foreignkey:ReceiveName"`
 }
 
-func (chat *ChatRoom) SaveRoom() (*ChatRoom, error) {
-	err := DB.Create(&chat).Error
+func (room *ChatRoom) SaveRoom() (*ChatRoom, error) {
+	err := DB.Create(&room).Error
 	if err != nil {
 		return &ChatRoom{}, err
 	}
-	return chat, nil
+	return room, nil
 }
 
-func (chat *ChatRoom) BeforeSave() error {
+func (room *ChatRoom) BeforeSave() error {
 	var cr ChatRoom
 
-	err := DB.Model(chat).Where("(sender_name, receive_name) IN ((?),(?))", chat.SenderName, chat.ReceiveName).Find(&cr).Error
-
-	if err != nil {
-		return err
-	}
-
-	if reflect.ValueOf(cr).IsNil() {
+	if room.SenderName == "" && room.ReceiveName == ""{
 		return nil
-	} else {
-		return errors.New("Chat telah dibuat")
 	}
+
+	fmt.Println(room.SenderName, room.ReceiveName)
+
+	err := DB.Model(ChatRoom{}).Where("(sender_name, receive_name) IN ((?,?))", room.SenderName, room.ReceiveName).Find(&cr).Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil
+	}
+	
+	return errors.New("Chat telah dibuat")
 }

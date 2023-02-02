@@ -18,6 +18,8 @@ type User struct {
 	Username  string     `gorm:"size:255;not null;unique" json:"username"`
 	Password  string     `gorm:"size:255;not null" json:"-"`
 	PhotoURL  string     `gorm:"size:255" json:"photoURL"`
+	Photo 	  string     `gorm:"size:255" json:"-"`
+	Status 	  string     `gorm:"size:255" json:"status"`
 }
 
 func (u *User) SaveUser() (*User, error) {
@@ -76,7 +78,7 @@ func GetUserByID(uid uint) (User, error) {
 	var u User
 
 	if err := DB.First(&u, uid).Error; err != nil {
-		return u, errors.New("User not found!")
+		return u, errors.New("User not found")
 	}
 
 	u.PrepareGive()
@@ -85,12 +87,12 @@ func GetUserByID(uid uint) (User, error) {
 
 }
 
-func GetUserByUsername(name string) ([]User, error) {
+func GetUserByUsername(name string) (User, error) {
 
-	var u []User
+	var u User
 
-	if err := DB.Model(User{}).Where("username LIKE ?", "%"+name+"%").Take(&u).Error; err != nil {
-		return []User{}, err
+	if err := DB.Model(User{}).Where("username = ?", name).Take(&u).Error; err != nil {
+		return User{}, err
 	}
 
 	return u, nil
@@ -98,4 +100,25 @@ func GetUserByUsername(name string) ([]User, error) {
 
 func (u *User) PrepareGive() {
 	u.Password = ""
+}
+
+func UpdatePhoto(u User) (error){
+
+	err := DB.Model(&User{}).Where("username = ?", u.Username).Update(&User{PhotoURL: u.PhotoURL, Photo: u.Photo}).Error
+
+	if err != nil {
+		return err
+	}
+	
+	return nil
+}
+
+func UpdateStatus(u User) (error){
+	err := DB.Model(&User{}).Where("username = ?", u.Username).Update(&User{Status: u.Status}).Error
+
+	if err != nil {
+		return err
+	}
+	
+	return nil
 }

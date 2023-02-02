@@ -40,7 +40,9 @@ func GetChatRoom(c *gin.Context) {
 		return
 	}
 
-	err = models.DB.Preload("Sender").Preload("Receiver").Where("sender_name = ?", u.Username).Take(&room).Error
+	err = models.DB.Preload("Sender").Preload("Receiver").Where("sender_name = ?", u.Username).Find(&room).Error
+
+	fmt.Println(room)
 
 	if err != nil {
 		fmt.Println(err.Error())
@@ -154,6 +156,18 @@ func AddChatRoom(c *gin.Context) {
 	room.ReceiveName = input.Receiver
 
 	chatroom, err := room.SaveRoom()
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	room2 := models.ChatRoom{}
+
+	room2.SenderName = input.Receiver
+	room2.ReceiveName = input.Sender
+
+	_, err = room2.SaveRoom()
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

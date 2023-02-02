@@ -7,19 +7,12 @@ import (
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
-	"github.com/joho/godotenv"
 )
 
 var DB *gorm.DB
 
 func SetupModels() {
 	var err error
-
-	err = godotenv.Load(".env")
-
-	if err != nil {
-		log.Fatal("connection error:", err)
-	}
 
 	Dbdriver := os.Getenv("DB_DRIVER")
 	DbHost := os.Getenv("DB_HOST")
@@ -59,7 +52,7 @@ func SeederUser() {
 	//Seeder User
 	user1 := User{Username: "anton", Password: "1234", PhotoURL: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTL_orYH8FKWYS5w45tZdya1Q32e6W0s0ug3g&usqp=CAU"}
 	user2 := User{Username: "budi", Password: "1234", PhotoURL: "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcTCbjYcSIp3PJWZiqcVIXfhyDz4rHklzINnQyEgp4iRzlGZudQ7"}
-	user3 := User{Username: "susi", Password: "1234", PhotoURL: "https://static.wikia.nocookie.net/disney/images/c/c0/Taylor_Swift.jpg/revision/latest?cb=20200810025119"}
+	user3 := User{Username: "susi", Password: "1234", PhotoURL: "https://pyxis.nymag.com/v1/imgs/176/e83/74be320c0aad12767ee92b95ce29f1a3c4-taylor-swift.1x.rsquare.w1400.jpg"}
 	users := []User{user1, user2, user3}
 
 	for _, element := range users {
